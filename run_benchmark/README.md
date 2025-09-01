@@ -1,0 +1,1 @@
+Remember to `chmod 777 /home/genglin/scripts_gl/run_benchmark/outputs`

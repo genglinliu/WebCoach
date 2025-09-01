@@ -19,13 +19,58 @@ def load_config():
         config = yaml.safe_load(f)
     
     # Validate required config sections
-    required_sections = ['browser', 'llm', 'agent', 'task', 'output', 'error_handling']
+    required_sections = ['browser', 'llm', 'agent', 'task', 'output', 'error_handling', 'subsets']
     for section in required_sections:
         if section not in config:
             raise ValueError(f"Missing required config section: {section}")
     
+    # Validate subsets configuration
+    if not isinstance(config['subsets'], list) or len(config['subsets']) == 0:
+        raise ValueError("subsets must be a non-empty list")
+    
     print(f"✅ Loaded configuration from: {config_path}")
     return config
+
+def filter_tasks_by_subsets(tasks, selected_subsets):
+    """Filter tasks based on selected subsets"""
+    if "all" in selected_subsets:
+        print("📋 Running all available subsets")
+        return tasks
+    
+    # Get all available web names from tasks
+    available_subsets = set(task['web_name'] for task in tasks)
+    
+    # Validate selected subsets
+    invalid_subsets = set(selected_subsets) - available_subsets
+    if invalid_subsets:
+        print(f"⚠️  Warning: Invalid subsets specified: {invalid_subsets}")
+        print(f"📋 Available subsets: {sorted(available_subsets)}")
+    
+    # Filter tasks by valid selected subsets
+    valid_subsets = set(selected_subsets) & available_subsets
+    if not valid_subsets:
+        raise ValueError(f"No valid subsets found. Available: {sorted(available_subsets)}")
+    
+    filtered_tasks = [task for task in tasks if task['web_name'] in valid_subsets]
+    
+    print(f"📋 Selected subsets: {sorted(valid_subsets)}")
+    print(f"📊 Filtered to {len(filtered_tasks)} tasks from {len(tasks)} total tasks")
+    
+    return filtered_tasks
+
+def task_already_exists(output_dir, web_name, task_id):
+    """Check if a task output directory already exists"""
+    subset_output_dir = output_dir / web_name
+    task_output_dir = subset_output_dir / task_id
+    
+    # Check if the task directory exists and has content
+    if task_output_dir.exists():
+        # Check if it has the expected files
+        history_file = task_output_dir / "agent_history.json"
+        if history_file.exists():
+            return True
+    
+    return False
 
 async def run_webvoyager_benchmark():
     """Run WebVoyager benchmark tasks one by one"""
@@ -56,6 +101,13 @@ async def run_webvoyager_benchmark():
     
     print(f"📊 Loaded {len(tasks)} WebVoyager tasks")
     
+    # Filter tasks based on selected subsets
+    try:
+        tasks = filter_tasks_by_subsets(tasks, config['subsets'])
+    except ValueError as e:
+        print(f"❌ {e}")
+        return
+    
     # Setup LLM and browser profile from config
     llm = ChatOpenAI(
         model=config['llm']['model']
@@ -81,11 +133,23 @@ async def run_webvoyager_benchmark():
     output_dir.mkdir(parents=True, exist_ok=True)
     
     # Process each task
+    skipped_count = 0
     for i, task_data in enumerate(tasks):
         task_id = task_data['id']
         web_name = task_data['web_name']
         question = task_data['ques']
         url = task_data['web']
+        
+        # Check if task already exists
+        if task_already_exists(output_dir, web_name, task_id):
+            print(f"\n{'='*80}")
+            print(f"⏭️  Task {i+1}/{len(tasks)}: {task_id} - SKIPPED (already exists)")
+            print(f"🌐 Website: {web_name}")
+            print(f"🔗 URL: {url}")
+            print(f"❓ Question: {question}")
+            print(f"{'='*80}")
+            skipped_count += 1
+            continue
         
         print(f"\n{'='*80}")
         print(f"🔄 Task {i+1}/{len(tasks)}: {task_id}")
@@ -115,9 +179,11 @@ async def run_webvoyager_benchmark():
             print(f"🤖 Starting agent for task {task_id}...")
             history = await agent.run(max_steps=config['agent']['max_steps'])
             
-            # Save task-specific history
-            task_output_dir = output_dir / task_id
-            task_output_dir.mkdir(exist_ok=True)
+            # Save task-specific history with subset grouping
+            # Structure: outputs/webvoyager/{subset_name}/{task_id}/
+            subset_output_dir = output_dir / web_name
+            task_output_dir = subset_output_dir / task_id
+            task_output_dir.mkdir(parents=True, exist_ok=True)
             
             # Save basic history if configured
             if config['output']['save_history']:
@@ -166,7 +232,10 @@ async def run_webvoyager_benchmark():
             
             # Save error information if configured
             if config['error_handling']['save_error_logs']:
-                error_file = output_dir / f"{task_id}_error.txt"
+                # Use the same subset-grouped structure for error logs
+                subset_output_dir = output_dir / web_name
+                subset_output_dir.mkdir(parents=True, exist_ok=True)
+                error_file = subset_output_dir / f"{task_id}_error.txt"
                 with open(error_file, 'w') as f:
                     f.write(f"Error: {str(e)}\n")
                     f.write(f"Task: {task_description}\n")
@@ -184,6 +253,8 @@ async def run_webvoyager_benchmark():
     
     print(f"\n🎉 WebVoyager benchmark completed!")
     print(f"📁 All results saved to: {output_dir}")
+    if skipped_count > 0:
+        print(f"⏭️  Skipped {skipped_count} tasks that already existed")
 
 if __name__ == "__main__":
     asyncio.run(run_webvoyager_benchmark())

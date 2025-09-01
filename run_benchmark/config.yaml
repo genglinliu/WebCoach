@@ -4,11 +4,11 @@
 browser:
   # Window and viewport settings
   window_size:
-    width: 1440
-    height: 900
+    width: 1920
+    height: 1080
   viewport:
-    width: 1440
-    height: 900
+    width: 1920
+    height: 1080
   
   # Browser behavior
   headless: true
@@ -44,9 +44,23 @@ agent:
 task:
   delay_between_tasks: 1  # seconds
 
+# WebVoyager Subset Selection
+# Available subsets: Allrecipes, Amazon, Apple, ArXiv, BBC News, Booking, 
+# Cambridge Dictionary, Coursera, ESPN, GitHub, Google Flights, Google Map, 
+# Google Search, Huggingface, Wolfram Alpha
+# Use "all" to run all subsets, or specify a list of subset names
+subsets:
+  # - "Allrecipes"  # Example: run only Allrecipes subset
+  - "Amazon"    # Uncomment to add more subsets
+  # - "Apple"     # Uncomment to add more subsets
+  # Use "all" to run all available subsets:
+  # - "all"
+
 # Output Settings
 output:
   base_dir: "outputs/webvoyager"
+  # Output structure will be: outputs/webvoyager/{subset_name}/{task_id}/
+  # e.g., outputs/webvoyager/Allrecipes/Allrecipes--0/
   save_history: true
   save_screenshots_as_png: true
   save_screenshots_as_base64: false  # Set to false since we're saving PNGs
