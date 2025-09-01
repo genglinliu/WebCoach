@@ -1,0 +1,57 @@
+# WebVoyager Benchmark Configuration
+
+# Browser Profile Settings (valid BrowserProfile parameters)
+browser:
+  # Window and viewport settings
+  window_size:
+    width: 1440
+    height: 900
+  viewport:
+    width: 1440
+    height: 900
+  
+  # Browser behavior
+  headless: true
+  disable_dev_shm_usage: true
+  no_sandbox: true
+  
+  # Performance settings
+  minimum_wait_page_load_time: 0.25
+  wait_between_actions: 0.5
+  wait_for_network_idle_page_load_time: 0.5
+  
+  # Browser features
+  enable_default_extensions: true
+  highlight_elements: true
+  accept_downloads: true
+  auto_download_pdfs: true
+
+# LLM Configuration
+llm:
+  model: "gpt-4o"
+
+# Agent Settings (valid Agent parameters)
+agent:
+  max_steps: 20
+  max_actions_per_step: 10
+  max_failures: 3
+  use_thinking: true
+  use_vision: true
+  vision_detail_level: "auto"
+  flash_mode: false
+
+# Task Processing
+task:
+  delay_between_tasks: 1  # seconds
+
+# Output Settings
+output:
+  base_dir: "outputs/webvoyager"
+  save_history: true
+  save_screenshots_as_png: true
+  save_screenshots_as_base64: false  # Set to false since we're saving PNGs
+
+# Error Handling
+error_handling:
+  save_error_logs: true
+  continue_on_error: true
