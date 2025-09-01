@@ -42,13 +42,12 @@ browser:
 
 # Screenshot Configuration
 screenshots:
-  enabled: true
+  enabled: false
   save_path: "./screenshots"
 
 # Output Configuration
 output:
   results_dir: "./results"
-  save_individual_results: true
   save_summary: true
   save_agent_history: true
   log_level: "INFO"
