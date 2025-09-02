@@ -220,7 +220,7 @@ async def run_webvoyager_benchmark():
         auto_download_pdfs=config['browser']['auto_download_pdfs']
     )
     
-    # Create output directory from config: outputs/{exp_config}/{dataset}/{model}/
+    # Create output directory from config: {base_dir}/{exp_config}/{dataset}/{model}/
     dataset_name = "webvoyager"  # This could be made configurable in the future
     model_name = config['llm']['model'].replace("/", "_")  # Replace / with _ for valid directory names
     
@@ -233,8 +233,11 @@ async def run_webvoyager_benchmark():
     else:
         exp_config = "baseline_no_coach"
     
-    # Structure: outputs/{exp_config}/{dataset}/{model}/
-    output_dir = Path("outputs") / exp_config / dataset_name / model_name
+    # Get base output directory from config
+    base_output_dir = config['output']['base_dir']
+    
+    # Structure: {base_dir}/{exp_config}/{dataset}/{model}/
+    output_dir = Path(base_output_dir) / exp_config / dataset_name / model_name
     output_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"📁 Output directory: {output_dir}")

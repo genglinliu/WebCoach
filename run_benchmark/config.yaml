@@ -70,10 +70,12 @@ subsets:
 
 # Output Settings
 output:
-  # Base directory structure: outputs/{dataset}/{model}/
-  # Will be automatically constructed as: outputs/webvoyager/gpt-4o/
+  # External outputs directory (outside of scripts_gl repo)
+  base_dir: "/home/genglin/benchmark_outputs"
+  # Base directory structure: {base_dir}/{exp_config}/{dataset}/{model}/
+  # Will be automatically constructed as: /home/genglin/benchmark_outputs/{exp_config}/webvoyager/{model}/
   save_history: true
-  save_screenshots_as_png: false
+  save_screenshots_as_png: true
   save_screenshots_as_base64: false  # Set to false since we're saving PNGs
 
 # Error Handling
@@ -83,8 +85,8 @@ error_handling:
 
 # WebCoach Configuration
 coach:
-  enabled: true   # Set to true to enable coaching
+  enabled: false   # Set to true to enable coaching
   model: "gpt-4o"  # Model for coaching advice generation (supported: "gpt-4o", "qwen_vl_7b", "qwen_vl_32b", "qwen3_8b" - others will throw error)
   frequency: 1     # Provide coaching every N steps (1 = every step)
-  storage_dir: "./outputs/coach_storage"  # Directory for storing coach experiences
+  storage_dir: "/home/genglin/benchmark_outputs/coach_storage"  # Directory for storing coach experiences
   debug: false     # Enable debug logging for coach components

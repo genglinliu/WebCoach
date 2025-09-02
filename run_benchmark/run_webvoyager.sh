@@ -13,6 +13,55 @@ echo "📁 Script directory: $SCRIPT_DIR"
 echo "📁 Scripts GL directory: $SCRIPTS_GL_DIR"
 echo "🌐 Browser-use directory: $BROWSER_USE_DIR"
 
+# Read output directory from config.yaml
+CONFIG_FILE="$SCRIPT_DIR/config.yaml"
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "❌ Config file not found: $CONFIG_FILE"
+    exit 1
+fi
+
+# Extract output base directory from config.yaml
+# Try Python YAML parsing first, fallback to basic grep if PyYAML not available
+OUTPUT_BASE_DIR=$(python3 -c "
+import yaml
+import sys
+try:
+    with open('$CONFIG_FILE', 'r') as f:
+        config = yaml.safe_load(f)
+    print(config['output']['base_dir'])
+except ImportError:
+    # PyYAML not available, fallback to basic parsing
+    import re
+    with open('$CONFIG_FILE', 'r') as f:
+        content = f.read()
+    # Look for base_dir: "path" pattern
+    match = re.search(r'base_dir:\s*[\"\\']([^\"\\']+)[\"\\']', content)
+    if match:
+        print(match.group(1))
+    else:
+        print('Error: Could not find base_dir in config', file=sys.stderr)
+        sys.exit(1)
+except Exception as e:
+    print('Error reading config:', e, file=sys.stderr)
+    sys.exit(1)
+" 2>/dev/null)
+
+# If Python parsing failed, try basic grep as last resort
+if [ -z "$OUTPUT_BASE_DIR" ]; then
+    echo "⚠️  Python YAML parsing failed, trying basic grep..."
+    OUTPUT_BASE_DIR=$(grep -E '^\s*base_dir:\s*["'"'"']' "$CONFIG_FILE" | sed -E 's/^\s*base_dir:\s*["'"'"']([^"'"'"']+)["'"'"'].*/\1/')
+fi
+
+if [ -z "$OUTPUT_BASE_DIR" ]; then
+    echo "❌ Failed to read output base directory from config.yaml"
+    exit 1
+fi
+
+echo "📁 Output base directory from config: $OUTPUT_BASE_DIR"
+
+# Create output directory on host
+mkdir -p "$OUTPUT_BASE_DIR"
+
 # Run WebVoyager benchmark in Docker
 docker run --rm -it \
     --entrypoint="" \
@@ -20,6 +69,7 @@ docker run --rm -it \
     --user root \
     -v "$BROWSER_USE_DIR":/app/browser-use \
     -v "$SCRIPTS_GL_DIR":/app/scripts_gl \
+    -v "$OUTPUT_BASE_DIR":"$OUTPUT_BASE_DIR" \
     -w /app/scripts_gl/run_benchmark \
     -e OPENAI_API_KEY="$OPENAI_API_KEY" \
     browseruse \
