@@ -15,7 +15,7 @@ import logging
 from typing import Dict, List, Any, Optional
 import openai
 from dotenv import load_dotenv
-from ems import ExternalMemoryStore
+from .ems import ExternalMemoryStore
 
 # Load environment variables
 load_dotenv()

@@ -34,7 +34,7 @@ class CoachComponents:
     def get_condenser(self):
         """Lazy load condenser"""
         if self.condenser is None:
-            from condenser import Condenser
+            from .condenser import Condenser
             self.condenser = Condenser(
                 model_name=self.config.get('model', 'gpt-4o')
             )
@@ -43,14 +43,14 @@ class CoachComponents:
     def get_ems(self):
         """Lazy load EMS"""
         if self.ems is None:
-            from ems import ExternalMemoryStore
+            from .ems import ExternalMemoryStore
             self.ems = ExternalMemoryStore(storage_dir=str(self.storage_dir))
         return self.ems
     
     def get_web_coach(self):
         """Lazy load WebCoach"""
         if self.web_coach is None:
-            from web_coach import WebCoach
+            from .web_coach import WebCoach
             self.web_coach = WebCoach(
                 model_name=self.config.get('model', 'gpt-4o'),
                 ems_dir=str(self.storage_dir)
@@ -60,7 +60,7 @@ class CoachComponents:
 def configure_coach(config: Dict[str, Any]):
     """Configure coach components with given config"""
     global _coach_components, _coach_config
-    from config import validate_coach_config
+    from .config import validate_coach_config
     
     _coach_config = validate_coach_config(config)
     _coach_components = CoachComponents(_coach_config)

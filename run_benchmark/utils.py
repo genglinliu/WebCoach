@@ -8,7 +8,8 @@ def extract_screenshots_from_history(history_file_path: str, output_dir: Path):
         with open(history_file_path, 'r') as f:
             history_data = json.load(f)
         
-        screenshots_dir = output_dir / "screenshots"
+        # output_dir is already the screenshots directory
+        screenshots_dir = output_dir
         screenshots_dir.mkdir(exist_ok=True)
         
         extracted_count = 0

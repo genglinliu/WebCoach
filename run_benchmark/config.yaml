@@ -28,7 +28,19 @@ browser:
 
 # LLM Configuration
 llm:
+  # OpenAI models (default)
   model: "gpt-4o"
+  
+  # Model configuration - MUST specify one of the supported models
+  # Supported models: "gpt-4o", "qwen_vl_7b", "qwen_vl_32b", "qwen3_8b"
+  # Unsupported models will throw an error
+  # model: "qwen_vl_7b"  # or "qwen_vl_32b" or "qwen3_8b"
+  
+  # Model server ports for Qwen VL models
+  qwen_ports:
+    qwen_vl_7b: 30003
+    qwen_vl_32b: 30001
+    qwen3_8b: 30002
 
 # Agent Settings (valid Agent parameters)
 agent:
@@ -51,8 +63,8 @@ task:
 # Use "all" to run all subsets, or specify a list of subset names
 subsets:
   # - "Allrecipes"  # Example: run only Allrecipes subset
-  - "Amazon"    # Uncomment to add more subsets
-  # - "Apple"     # Uncomment to add more subsets
+  # - "Amazon"    # Uncomment to add more subsets
+  - "Apple"     # Uncomment to add more subsets
   # Use "all" to run all available subsets:
   # - "all"
 
@@ -61,7 +73,7 @@ output:
   # Base directory structure: outputs/{dataset}/{model}/
   # Will be automatically constructed as: outputs/webvoyager/gpt-4o/
   save_history: true
-  save_screenshots_as_png: true
+  save_screenshots_as_png: false
   save_screenshots_as_base64: false  # Set to false since we're saving PNGs
 
 # Error Handling
@@ -71,8 +83,8 @@ error_handling:
 
 # WebCoach Configuration
 coach:
-  enabled: false  # Set to true to enable coaching
-  model: "gpt-4o"  # Model for coaching advice generation
-  frequency: 5     # Provide coaching every N steps (1 = every step)
-  storage_dir: "./coach_storage"  # Directory for storing coach experiences
+  enabled: true   # Set to true to enable coaching
+  model: "gpt-4o"  # Model for coaching advice generation (supported: "gpt-4o", "qwen_vl_7b", "qwen_vl_32b", "qwen3_8b" - others will throw error)
+  frequency: 1     # Provide coaching every N steps (1 = every step)
+  storage_dir: "./outputs/coach_storage"  # Directory for storing coach experiences
   debug: false     # Enable debug logging for coach components

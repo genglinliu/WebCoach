@@ -9,6 +9,56 @@ from utils import extract_screenshots_from_history
 
 load_dotenv()
 
+def create_llm_instance(model_name, qwen_ports=None):
+    """Create LLM instance for either OpenAI or specific Qwen models"""
+    # Define the specific models we support
+    supported_qwen_models = {
+        "qwen_vl_7b": "Qwen/Qwen2.5-VL-7B-Instruct",
+        "qwen_vl_32b": "Qwen/Qwen2.5-VL-32B-Instruct", 
+        "qwen3_8b": "Qwen/Qwen3-8B"  # Qwen3 8B for coach
+    }
+    
+    # List of supported OpenAI models
+    supported_openai_models = {"gpt-4o"}
+    
+    if model_name in supported_qwen_models:
+        # Qwen model - use sglang server
+        if not qwen_ports:
+            raise ValueError(f"Qwen ports configuration missing for model: {model_name}")
+        
+        if model_name not in qwen_ports:
+            raise ValueError(f"Port not configured for Qwen model: {model_name}")
+        
+        port = qwen_ports[model_name]
+        actual_model = supported_qwen_models[model_name]
+        
+        # Determine model type for logging
+        if model_name.startswith("qwen_vl_"):
+            model_type = "Qwen VL"
+        elif model_name.startswith("qwen3_"):
+            model_type = "Qwen3"
+        else:
+            model_type = "Qwen"
+        
+        print(f"🤖 Using {model_type} model: {actual_model} on port {port}")
+        return ChatOpenAI(
+            model=actual_model,
+            base_url=f"http://localhost:{port}/v1",
+            api_key="dummy",
+            temperature=0.5,
+        )
+    elif model_name in supported_openai_models:
+        # OpenAI model - use OpenAI API
+        print(f"🤖 Using OpenAI model: {model_name}")
+        return ChatOpenAI(model=model_name)
+    else:
+        # Unsupported model - throw error
+        all_supported = list(supported_qwen_models.keys()) + list(supported_openai_models)
+        raise ValueError(
+            f"Unsupported model: '{model_name}'. "
+            f"Supported models are: {', '.join(all_supported)}"
+        )
+
 def load_config():
     """Load configuration from YAML file"""
     config_path = Path(__file__).parent / "config.yaml"
@@ -41,15 +91,25 @@ def setup_coach(config):
         
     try:
         # Import coach components
-        sys.path.append(str(Path(__file__).parent.parent / "WebCoach"))
+        sys.path.append(str(Path(__file__).parent.parent))
         from WebCoach.coach_callback import configure_coach, coach_step_callback
         from WebCoach.config import get_coach_config_from_main_config
         
         # Configure coach with validated config
         validated_coach_config = get_coach_config_from_main_config(config)
+        
+        # Create coach LLM instance if it's a supported Qwen model
+        coach_model = validated_coach_config.get('model', 'gpt-4o')
+        supported_qwen_models = ["qwen_vl_7b", "qwen_vl_32b", "qwen3_8b"]
+        if coach_model in supported_qwen_models:
+            qwen_ports = config['llm'].get('qwen_ports', {})
+            coach_llm = create_llm_instance(coach_model, qwen_ports)
+            # Update the config with the actual LLM instance
+            validated_coach_config['llm_instance'] = coach_llm
+        
         configure_coach(validated_coach_config)
         
-        print(f"🤖 WebCoach enabled - Model: {validated_coach_config['model']}, Frequency: {validated_coach_config['frequency']}")
+        print(f"🤖 WebCoach enabled - Model: {coach_model}, Frequency: {validated_coach_config['frequency']}")
         print(f"📁 Coach storage: {validated_coach_config['storage_dir']}")
         
         return coach_step_callback
@@ -136,9 +196,10 @@ async def run_webvoyager_benchmark():
         print(f"❌ {e}")
         return
     
-    # Setup LLM and browser profile from config
-    llm = ChatOpenAI(
-        model=config['llm']['model']
+    # Setup LLM from config (supports both OpenAI and Qwen models)
+    llm = create_llm_instance(
+        config['llm']['model'],
+        config['llm'].get('qwen_ports')
     )
     
     # Setup WebCoach if enabled
@@ -159,10 +220,21 @@ async def run_webvoyager_benchmark():
         auto_download_pdfs=config['browser']['auto_download_pdfs']
     )
     
-    # Create output directory from config: outputs/{dataset}/{model}/
+    # Create output directory from config: outputs/{exp_config}/{dataset}/{model}/
     dataset_name = "webvoyager"  # This could be made configurable in the future
     model_name = config['llm']['model'].replace("/", "_")  # Replace / with _ for valid directory names
-    output_dir = Path("outputs") / dataset_name / model_name
+    
+    # Create experiment configuration identifier
+    if config.get('coach', {}).get('enabled', False):
+        coach_config = config['coach']
+        frequency = coach_config.get('frequency', 5)
+        coach_model = coach_config.get('model', 'gpt-4o').replace("/", "_").replace("-", "_")
+        exp_config = f"with_coach_freq_{frequency}_model_{coach_model}"
+    else:
+        exp_config = "baseline_no_coach"
+    
+    # Structure: outputs/{exp_config}/{dataset}/{model}/
+    output_dir = Path("outputs") / exp_config / dataset_name / model_name
     output_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"📁 Output directory: {output_dir}")

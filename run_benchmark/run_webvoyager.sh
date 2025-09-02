@@ -17,9 +17,23 @@ echo "🌐 Browser-use directory: $BROWSER_USE_DIR"
 docker run --rm -it \
     --entrypoint="" \
     --privileged \
+    --user root \
     -v "$BROWSER_USE_DIR":/app/browser-use \
     -v "$SCRIPTS_GL_DIR":/app/scripts_gl \
     -w /app/scripts_gl/run_benchmark \
     -e OPENAI_API_KEY="$OPENAI_API_KEY" \
     browseruse \
-    python run_webvoyager.py
+    bash -c "
+    echo '🔍 Debugging Python environment...'
+    which python
+    which pip
+    python --version
+    echo '📦 Installing WebCoach dependencies using system pip with target...'
+    pip install --target /app/.venv/lib/python3.12/site-packages -r /app/scripts_gl/WebCoach/requirements.txt
+    echo '✅ Testing numpy import with explicit venv python...'
+    /app/.venv/bin/python -c 'import numpy; print(\"NumPy version:\", numpy.__version__)'
+    echo '✅ Testing faiss import...'
+    /app/.venv/bin/python -c 'import faiss; print(\"FAISS imported successfully\")'
+    echo '🚀 Starting WebVoyager...'
+    /app/.venv/bin/python run_webvoyager.py
+    "

@@ -11,6 +11,6 @@ Components:
 - web_coach: Generates advice based on similar past experiences
 """
 
-from coach_callback import coach_step_callback
+from .coach_callback import coach_step_callback
 
 __all__ = ['coach_step_callback']
