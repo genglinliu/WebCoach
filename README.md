@@ -32,3 +32,7 @@ Follow the scripts under `/home/genglin/scripts_gl/start_LLM_inference/ASG`. SGL
 First make sure you configurate the experiments here using `/home/genglin/scripts_gl/run_benchmark/config.yaml`
 
 Then follow `/home/genglin/scripts_gl/run_benchmark/run_webvoyager.sh`
+
+## Evaluation
+
+Run `/home/genglin/scripts_gl/evaluation/eval_webvoyager_results.py` to generate table, metrics include SR, Succ/Total, Avg_time, Avg_num_steps.

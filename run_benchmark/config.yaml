@@ -29,7 +29,7 @@ browser:
 # LLM Configuration
 llm:
   # OpenAI models (default)
-  model: "gpt-4o"
+  model: "qwen_vl_32b"
   
   # Model configuration - MUST specify one of the supported models
   # Supported models: "gpt-4o", "qwen_vl_7b", "qwen_vl_32b", "qwen3_8b"

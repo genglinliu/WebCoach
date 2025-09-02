@@ -43,7 +43,7 @@ def create_llm_instance(model_name, qwen_ports=None):
         print(f"🤖 Using {model_type} model: {actual_model} on port {port}")
         return ChatOpenAI(
             model=actual_model,
-            base_url=f"http://localhost:{port}/v1",
+            base_url=f"http://host.docker.internal:{port}/v1",
             api_key="dummy",
             temperature=0.5,
         )

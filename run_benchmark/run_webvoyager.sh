@@ -67,6 +67,7 @@ docker run --rm -it \
     --entrypoint="" \
     --privileged \
     --user root \
+    --add-host host.docker.internal:host-gateway \
     -v "$BROWSER_USE_DIR":/app/browser-use \
     -v "$SCRIPTS_GL_DIR":/app/scripts_gl \
     -v "$OUTPUT_BASE_DIR":"$OUTPUT_BASE_DIR" \
