@@ -58,9 +58,8 @@ subsets:
 
 # Output Settings
 output:
-  base_dir: "outputs/webvoyager"
-  # Output structure will be: outputs/webvoyager/{subset_name}/{task_id}/
-  # e.g., outputs/webvoyager/Allrecipes/Allrecipes--0/
+  # Base directory structure: outputs/{dataset}/{model}/
+  # Will be automatically constructed as: outputs/webvoyager/gpt-4o/
   save_history: true
   save_screenshots_as_png: true
   save_screenshots_as_base64: false  # Set to false since we're saving PNGs

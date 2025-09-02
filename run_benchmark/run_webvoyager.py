@@ -128,9 +128,13 @@ async def run_webvoyager_benchmark():
         auto_download_pdfs=config['browser']['auto_download_pdfs']
     )
     
-    # Create output directory from config
-    output_dir = Path(config['output']['base_dir'])
+    # Create output directory from config: outputs/{dataset}/{model}/
+    dataset_name = "webvoyager"  # This could be made configurable in the future
+    model_name = config['llm']['model'].replace("/", "_")  # Replace / with _ for valid directory names
+    output_dir = Path("outputs") / dataset_name / model_name
     output_dir.mkdir(parents=True, exist_ok=True)
+    
+    print(f"📁 Output directory: {output_dir}")
     
     # Process each task
     skipped_count = 0
@@ -180,7 +184,7 @@ async def run_webvoyager_benchmark():
             history = await agent.run(max_steps=config['agent']['max_steps'])
             
             # Save task-specific history with subset grouping
-            # Structure: outputs/webvoyager/{subset_name}/{task_id}/
+            # Structure: outputs/webvoyager/gpt-4o/{subset_name}/{task_id}/
             subset_output_dir = output_dir / web_name
             task_output_dir = subset_output_dir / task_id
             task_output_dir.mkdir(parents=True, exist_ok=True)
