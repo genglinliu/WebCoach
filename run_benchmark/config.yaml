@@ -68,3 +68,11 @@ output:
 error_handling:
   save_error_logs: true
   continue_on_error: true
+
+# WebCoach Configuration
+coach:
+  enabled: false  # Set to true to enable coaching
+  model: "gpt-4o"  # Model for coaching advice generation
+  frequency: 5     # Provide coaching every N steps (1 = every step)
+  storage_dir: "./coach_storage"  # Directory for storing coach experiences
+  debug: false     # Enable debug logging for coach components

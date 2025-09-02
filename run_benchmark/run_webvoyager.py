@@ -31,6 +31,34 @@ def load_config():
     print(f"✅ Loaded configuration from: {config_path}")
     return config
 
+def setup_coach(config):
+    """Setup WebCoach if enabled in configuration"""
+    coach_config = config.get('coach', {})
+    
+    if not coach_config.get('enabled', False):
+        print("🤖 WebCoach disabled")
+        return None
+        
+    try:
+        # Import coach components
+        sys.path.append(str(Path(__file__).parent.parent / "WebCoach"))
+        from WebCoach.coach_callback import configure_coach, coach_step_callback
+        from WebCoach.config import get_coach_config_from_main_config
+        
+        # Configure coach with validated config
+        validated_coach_config = get_coach_config_from_main_config(config)
+        configure_coach(validated_coach_config)
+        
+        print(f"🤖 WebCoach enabled - Model: {validated_coach_config['model']}, Frequency: {validated_coach_config['frequency']}")
+        print(f"📁 Coach storage: {validated_coach_config['storage_dir']}")
+        
+        return coach_step_callback
+        
+    except Exception as e:
+        print(f"❌ Failed to setup WebCoach: {e}")
+        print("🤖 Continuing without coaching...")
+        return None
+
 def filter_tasks_by_subsets(tasks, selected_subsets):
     """Filter tasks based on selected subsets"""
     if "all" in selected_subsets:
@@ -113,6 +141,9 @@ async def run_webvoyager_benchmark():
         model=config['llm']['model']
     )
     
+    # Setup WebCoach if enabled
+    coach_callback = setup_coach(config)
+    
     browser_profile = BrowserProfile(
         headless=config['browser']['headless'],
         disable_dev_shm_usage=config['browser']['disable_dev_shm_usage'],
@@ -181,7 +212,15 @@ async def run_webvoyager_benchmark():
             )
             
             print(f"🤖 Starting agent for task {task_id}...")
-            history = await agent.run(max_steps=config['agent']['max_steps'])
+            # Run agent with or without coaching
+            if coach_callback:
+                print(f"🎯 Running with WebCoach guidance...")
+                history = await agent.run(
+                    max_steps=config['agent']['max_steps'],
+                    on_step_end=coach_callback
+                )
+            else:
+                history = await agent.run(max_steps=config['agent']['max_steps'])
             
             # Save task-specific history with subset grouping
             # Structure: outputs/webvoyager/gpt-4o/{subset_name}/{task_id}/
