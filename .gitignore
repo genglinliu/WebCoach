@@ -61,3 +61,5 @@ examples/outputs/
 *.tmp
 *.temp
 .cache/
+
+extra/
