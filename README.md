@@ -25,16 +25,16 @@ Then follow `~/browser-use/docker/README.md` for docker image installation
 
 ## Setup: running local models
 
-Follow the scripts under `~/scripts_gl/start_LLM_inference/ASG`. SGLang provides their own docker image already.
+Follow the scripts under `~/start_LLM_inference`. SGLang provides their own docker image already.
 
 ## Running the Benchmark
 
-First make sure you configurate the experiments here using `~/scripts_gl/run_benchmark/config.yaml`
+First make sure you configurate the experiments here using `~/run_benchmark/config.yaml`
 
-Then follow `~/scripts_gl/run_benchmark/run_webvoyager.sh`
+Then follow `~/run_benchmark/run_webvoyager.sh`
 
 You can specify base_dir, model, benchmark, and coaching parameters
 
 ## Evaluation
 
-Run `~/scripts_gl/evaluation/eval_webvoyager_results.py` to generate table, metrics include SR, Succ/Total, Avg_time, Avg_num_steps.
+Run `~/evaluation/eval_webvoyager_results.py` to generate table, metrics include SR, Succ/Total, Avg_time, Avg_num_steps.
