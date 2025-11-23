@@ -1,9 +1,9 @@
-mkdir -p /fsx-neo/dedicated-fsx-data-repo-neo-us-east-1/genglin/.cache/huggingface
+mkdir -p /.cache/huggingface
 
 docker run --gpus '"device=4"' \
     --shm-size 32g \
     -p 30002:30002 \
-    -v /fsx-neo/dedicated-fsx-data-repo-neo-us-east-1/genglin/.cache/huggingface:/root/.cache/huggingface \
+    -v /.cache/huggingface \
     --env "HF_TOKEN" \
     --ipc=host \
     lmsysorg/sglang:latest \
